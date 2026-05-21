@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pilot Link Builder — Argos Connected</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red:       #bf1614;
+      --red-glow:  rgba(191,22,20,0.15);
+      --bg:        #0d0d0d;
+      --surface:   #161616;
+      --surface-2: #1e1e1e;
+      --border:    #2a2a2a;
+      --text:      #f0f0f0;
+      --muted:     #888;
+      --green:     #22c55e;
+      --green-bg:  #0d2e1f;
+      --green-br:  #1A8754;
+      --amber:     #f59e0b;
+      --amber-bg:  #2a2200;
+      --radius:    8px;
+    }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; font-size:15px; min-height:100vh; }
+
+    /* Header */
+    header { background:#000; border-bottom:2px solid var(--red); }
+    .header-inner { max-width:900px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; padding:16px 32px; }
+    .header-logo img { height:40px; width:auto; }
+    .header-tag { background:var(--red); color:#fff; font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; padding:5px 14px; border-radius:50px; }
+
+    /* Layout */
+    main { max-width:900px; margin:0 auto; padding:32px 32px 80px; }
+    .page-title { margin-bottom:28px; }
+    .page-title h1 { font-size:24px; font-weight:700; color:#fff; margin-bottom:6px; }
+    .page-title p  { color:var(--muted); font-size:13px; line-height:1.6; }
+
+    /* Cards */
+    .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:28px 32px; margin-bottom:16px; }
+    .card-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:var(--red); margin-bottom:20px; display:flex; align-items:center; gap:8px; }
+
+    /* Base URL */
+    .base-url-row { display:flex; align-items:center; gap:12px; background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:11px 16px; margin-bottom:8px; }
+    .base-url-row label { font-size:11px; font-weight:600; color:var(--muted); white-space:nowrap; text-transform:uppercase; letter-spacing:.06em; }
+    .base-url-row input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-size:13px; font-family:'SF Mono','Fira Code',monospace; }
+
+    /* Form grid */
+    .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .field { display:flex; flex-direction:column; gap:5px; }
+    .field.full { grid-column:1/-1; }
+    .field label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; display:flex; align-items:center; gap:6px; }
+    .field label .req { color:var(--red); }
+    .field label .hint { font-weight:400; text-transform:none; letter-spacing:0; font-size:11px; color:#555; }
+    .field input, .field select, .field textarea {
+      background:var(--surface-2); border:1px solid var(--border); border-radius:6px;
+      padding:9px 12px; color:var(--text); font-size:13px; font-family:inherit;
+      outline:none; transition:border-color .15s, box-shadow .15s; width:100%;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color:var(--red); box-shadow:0 0 0 3px var(--red-glow);
+    }
+    .field input::placeholder, .field textarea::placeholder { color:#444; }
+    .field select option { background:#1e1e1e; }
+
+    /* Section divider */
+    .section-divider { display:flex; align-items:center; gap:12px; margin:24px 0 18px; }
+    .section-divider .line { flex:1; height:1px; background:var(--border); }
+    .section-divider span { font-size:11px; font-weight:700; color:var(--red); text-transform:uppercase; letter-spacing:.08em; white-space:nowrap; }
+
+    /* Objectives rows */
+    .obj-row {
+      display:grid; grid-template-columns:auto auto 1fr 1fr auto;
+      gap:12px; align-items:start;
+      padding:16px; background:var(--surface-2); border:1px solid var(--border);
+      border-radius:var(--radius); margin-bottom:10px; transition:opacity .2s;
+    }
+    .obj-row.disabled { opacity:.4; }
+    .obj-row.disabled input, .obj-row.disabled select { pointer-events:none; }
+    .obj-num { font-size:11px; font-weight:700; color:var(--red); width:20px; padding-top:9px; text-align:center; }
+    .obj-row .field label { font-size:10px; }
+    .obj-row .field input { padding:10px 12px; font-size:13px; min-height:40px; }
+    .obj-row .field select { padding:10px 12px; font-size:13px; min-height:40px; }
+    .obj-toggle { display:flex; align-items:center; padding-top:6px; }
+
+    /* Scope items */
+    .scope-item {
+      display:grid; grid-template-columns:auto 1fr auto auto 1fr;
+      gap:12px; align-items:center;
+      padding:12px 16px; background:var(--surface-2); border:1px solid var(--border);
+      border-radius:var(--radius); margin-bottom:6px; transition:opacity .2s;
+    }
+    .scope-item.disabled { opacity:.4; }
+    .scope-item .field label { font-size:10px; }
+    .scope-item .field input,
+    .scope-item .field select { padding:6px 8px; font-size:12px; }
+    .scope-name { font-size:13px; font-weight:600; color:#fff; white-space:nowrap; }
+
+    /* Toggle switch */
+    .toggle-wrap { display:flex; flex-direction:column; align-items:center; gap:3px; padding-top:2px; }
+    .toggle-wrap .toggle-label { font-size:9px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; }
+    .toggle { position:relative; width:36px; height:20px; cursor:pointer; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .toggle-slider {
+      position:absolute; inset:0; background:#333; border-radius:20px; transition:.2s;
+    }
+    .toggle-slider::before {
+      content:''; position:absolute; width:14px; height:14px;
+      left:3px; bottom:3px; background:#666; border-radius:50%; transition:.2s;
+    }
+    .toggle input:checked + .toggle-slider { background:var(--red); }
+    .toggle input:checked + .toggle-slider::before { background:#fff; transform:translateX(16px); }
+
+    /* Status selector pill group */
+    .status-pills { display:flex; gap:4px; }
+    .status-pill {
+      padding:4px 10px; border-radius:50px; font-size:11px; font-weight:600;
+      cursor:pointer; border:1px solid transparent; transition:all .15s;
+      background:var(--surface); color:var(--muted); border-color:var(--border);
+    }
+    .status-pill.sel-included { background:var(--green-bg); color:var(--green); border-color:var(--green-br); }
+    .status-pill.sel-tbd      { background:var(--amber-bg); color:var(--amber); border-color:#7a5500; }
+    .status-pill.sel-excluded { background:#2a0000; color:#f87171; border-color:var(--red); }
+    .status-pill.sel-pending  { background:#1e1e1e; color:#666; border-color:#3a3a3a; }
+    .status-pill.sel-active   { background:var(--amber-bg); color:var(--amber); border-color:#7a5500; }
+    .status-pill.sel-complete { background:var(--green-bg); color:var(--green); border-color:var(--green-br); }
+
+    /* Custom scope rows */
+    .custom-scope-row {
+      display:grid; grid-template-columns:1fr 1fr auto auto 1fr auto;
+      gap:8px; align-items:start;
+      padding:10px 12px; background:#111; border:1px dashed #333;
+      border-radius:var(--radius); margin-bottom:6px;
+    }
+    .custom-scope-row .field input,
+    .custom-scope-row .field select { padding:6px 8px; font-size:12px; }
+    .btn-remove {
+      background:transparent; border:1px solid #333; color:#666; border-radius:4px;
+      padding:6px 8px; cursor:pointer; font-size:12px; margin-top:19px;
+      transition:all .15s; white-space:nowrap;
+    }
+    .btn-remove:hover { border-color:var(--red); color:#f87171; }
+
+    /* Timeline phase rows */
+    .phase-row {
+      display:flex; align-items:center; gap:12px;
+      padding:12px 16px; background:var(--surface-2); border:1px solid var(--border);
+      border-radius:var(--radius); margin-bottom:8px;
+    }
+    .phase-num {
+      width:26px; height:26px; border-radius:50%;
+      background:var(--red); color:#fff;
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700; flex-shrink:0;
+    }
+    .phase-name { flex:1; font-size:13px; font-weight:600; color:#fff; }
+    .phase-date-input {
+      background:var(--surface); border:1px solid var(--border); border-radius:6px;
+      padding:6px 10px; color:var(--text); font-size:12px; font-family:inherit;
+      outline:none; transition:border-color .15s;
+      color-scheme: dark;
+    }
+    .phase-date-input:focus { border-color:var(--red); }
+    .phase-dates-wrap { display:flex; align-items:center; gap:6px; }
+    .phase-dates-wrap span { color:var(--muted); font-size:12px; }
+
+    /* Add custom item button */
+    .btn-add {
+      display:inline-flex; align-items:center; gap:6px;
+      background:transparent; border:1px dashed #444; color:var(--muted);
+      border-radius:var(--radius); padding:8px 16px; font-size:12px;
+      cursor:pointer; margin-top:8px; transition:all .15s;
+    }
+    .btn-add:hover { border-color:var(--red); color:var(--text); }
+
+    /* Output URL */
+    .url-output-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:16px; }
+    .url-output-header {
+      background:var(--red); padding:10px 20px; font-size:11px; font-weight:700;
+      letter-spacing:.08em; text-transform:uppercase; color:#fff;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .live-badge { display:flex; align-items:center; gap:5px; font-size:11px; opacity:.85; }
+    .live-dot { width:6px; height:6px; background:#fff; border-radius:50%; animation:pulse 1.8s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    #generated-url {
+      padding:16px 20px; font-family:'SF Mono','Fira Code','Courier New',monospace;
+      font-size:12px; color:#ccc; word-break:break-all; line-height:1.8; min-height:56px;
+    }
+    #generated-url .url-base { color:#666; }
+    #generated-url .url-key  { color:#bf6160; }
+    #generated-url .url-val  { color:#e8a09f; }
+    #generated-url .url-sep  { color:#444; }
+
+    /* Action buttons */
+    .actions { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:24px; }
+    .btn { display:inline-flex; align-items:center; gap:7px; padding:11px 20px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:all .15s; }
+    .btn-primary { background:var(--red); color:#fff; }
+    .btn-primary:hover { background:#d41917; transform:translateY(-1px); }
+    .btn-primary.copied { background:var(--green); pointer-events:none; }
+    .btn-secondary { background:var(--surface-2); color:var(--text); border:1px solid var(--border); }
+    .btn-secondary:hover { border-color:var(--red); }
+    .btn-ghost { background:transparent; color:var(--muted); border:1px solid var(--border); }
+    .btn-ghost:hover { color:var(--text); border-color:#555; }
+
+    /* Link type toggle */
+    .link-type { display:flex; gap:0; border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:0; }
+    .link-type-opt {
+      flex:1; padding:10px; text-align:center; cursor:pointer;
+      font-size:12px; font-weight:600; color:var(--muted);
+      background:var(--surface-2); transition:all .15s;
+      border:none; outline:none;
+    }
+    .link-type-opt.active { background:var(--red); color:#fff; }
+
+    /* Tips */
+    .tips { background:#0d0d0d; border:1px solid var(--border); border-left:3px solid var(--red); border-radius:0 var(--radius) var(--radius) 0; padding:14px 18px; font-size:12px; color:var(--muted); line-height:1.7; }
+    .tips strong { color:var(--text); }
+    .tips code { background:var(--surface-2); padding:1px 5px; border-radius:4px; font-size:11px; }
+
+    /* Footer */
+    footer { background:#000; border-top:2px solid var(--red); padding:18px 32px; text-align:center; color:#444; font-size:11px; }
+    footer img { height:24px; opacity:.4; display:block; margin:0 auto 6px; }
+
+    @media (max-width:640px) {
+      main { padding:20px 14px 60px; }
+      .card { padding:18px 16px; }
+      .form-grid { grid-template-columns:1fr; }
+      .obj-row { grid-template-columns:auto 1fr; grid-template-rows:auto auto auto; }
+      .scope-item { grid-template-columns:auto 1fr; }
+      .custom-scope-row { grid-template-columns:1fr; }
+      .phase-row { flex-wrap:wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="header-logo">
+      <img src="./argos-logo-white.png" alt="Argos Connected Solutions"
+           onerror="this.src='https://static.wixstatic.com/media/cd21ab_b51892a7f47b4bbf856884a46bd3f756~mv2.png/v1/fill/w_228,h_81,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Argos%20logo%20-%202023%20(1).png'; this.style.filter='brightness(0) invert(1)'" />
+    </div>
+    <span class="header-tag">Internal Tool — Sales</span>
+  </div>
+</header>
+
+<main>
+
+  <div class="page-title">
+    <h1>Geotab Pilot Link Builder</h1>
+    <p>Fill in the sections below and copy the link at the bottom. Every field updates the link live — no saving required.</p>
+  </div>
+
+  <!-- ── Step 1: Hosted URL ── -->
+  <div class="card">
+    <div class="card-title">⚙️ Step 1 — Hosted Page URL</div>
+    <div class="base-url-row">
+      <label>Page URL</label>
+      <input type="url" id="base-url" placeholder="https://pilot.argosconnected.com/argos_pilot_landing.html" value="https://pilot.argosconnected.com/argos_pilot_landing.html" />
+    </div>
+    <p style="font-size:11px;color:#444;">Set this once when you know where the landing page is hosted. Leave as-is if using the default URL.</p>
+  </div>
+
+  <!-- ── Step 2: Prospect Details ── -->
+  <div class="card">
+    <div class="card-title">🏢 Step 2 — Prospect Details</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Company Name <span class="req">*</span> <span class="hint">— required</span></label>
+        <input type="text" id="f-company" placeholder="e.g. Smith Logistics" />
+      </div>
+      <div class="field">
+        <label>Pilot Start Date</label>
+        <input type="text" id="f-start" placeholder="e.g. June 2, 2026" />
+      </div>
+      <div class="field">
+        <label>Duration <span class="hint">— default: 60 Days</span></label>
+        <input type="text" id="f-duration" placeholder="e.g. 60 Days" value="60 Days" />
+      </div>
+      <div class="field">
+        <label>Vehicles in Scope</label>
+        <input type="text" id="f-vehicles" placeholder="e.g. 20 Units" />
+      </div>
+      <div class="field">
+        <label>Fleet Type</label>
+        <input type="text" id="f-fleet-type" placeholder="e.g. Class 5–8 Mixed" />
+      </div>
+      <div class="field">
+        <label>Depot / Location</label>
+        <input type="text" id="f-location" placeholder="e.g. Columbus, OH" />
+      </div>
+      <div class="field">
+        <label>Prospect Contact</label>
+        <input type="text" id="f-client-contact" placeholder="e.g. Jane Smith, Fleet Manager" />
+      </div>
+      <div class="field">
+        <label>Argos Rep <span class="hint">— default: Mark Bowden</span></label>
+        <input type="text" id="f-rep" placeholder="Mark Bowden" value="Mark Bowden" />
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Step 3: Objectives ── -->
+  <div class="card">
+    <div class="card-title">🎯 Step 3 — Key Objectives</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">
+      Toggle on the objectives that apply. Leave the toggle off to hide an objective from the prospect page.
+      Set an initial status for each — you can update statuses later by regenerating the link.
+    </p>
+
+    <div id="objectives-section">
+      <!-- Rows injected by JS -->
+    </div>
+  </div>
+
+  <!-- ── Step 4: Scope of Work ── -->
+  <div class="card">
+    <div class="card-title">📋 Step 4 — Scope of Work</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">
+      Toggle on the items that are in scope. Set status (Included / TBD / Excluded) and add quantities and notes as needed.
+    </p>
+
+    <div id="scope-section">
+      <!-- Rows injected by JS -->
+    </div>
+
+    <div class="section-divider"><div class="line"></div><span>Custom Items</span><div class="line"></div></div>
+
+    <div id="custom-scope-rows"></div>
+    <button class="btn-add" onclick="addCustomScope()">＋ Add Custom Item</button>
+  </div>
+
+  <!-- ── Step 5: Timeline Phases ── -->
+  <div class="card">
+    <div class="card-title">📅 Step 5 — Timeline &amp; Milestones</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">
+      Set the date and current status for each phase. Use "In Progress" for the current active phase.
+      Update statuses as the pilot progresses and regenerate the link.
+    </p>
+    <div id="phases-section">
+      <!-- Rows injected by JS -->
+    </div>
+  </div>
+
+  <!-- ── Step 6: Link Type ── -->
+  <div class="card">
+    <div class="card-title">🔗 Step 6 — Link Type</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">
+      <strong style="color:var(--text)">Customer link</strong> — read-only view, no edit controls visible.<br/>
+      <strong style="color:var(--text)">Sales link</strong> — includes edit controls so you can update statuses directly on the page without rebuilding the URL.
+    </p>
+    <div class="link-type">
+      <button class="link-type-opt active" id="lt-customer" onclick="setLinkType('customer')">👤 Customer Link</button>
+      <button class="link-type-opt" id="lt-sales" onclick="setLinkType('sales')">🔒 Sales Link (with edit controls)</button>
+    </div>
+  </div>
+
+  <!-- ── Generated URL ── -->
+  <div class="url-output-card">
+    <div class="url-output-header">
+      <span>Your Prospect Link</span>
+      <span class="live-badge"><span class="live-dot"></span> Updates live</span>
+    </div>
+    <div id="generated-url"><span style="color:#444;font-style:italic;">Enter a company name above to generate the link…</span></div>
+  </div>
+
+  <!-- ── Actions ── -->
+  <div class="actions">
+    <button class="btn btn-primary" id="btn-copy" onclick="copyLink()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy Link
+    </button>
+    <button class="btn btn-secondary" onclick="previewLink()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+      Preview in New Tab
+    </button>
+    <button class="btn btn-ghost" onclick="resetForm()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-4.6"/></svg>
+      Reset
+    </button>
+  </div>
+
+  <div class="tips">
+    <strong>💡 Sending the link</strong> — paste into your email as a hyperlink. Shorten it first at
+    <a href="https://bit.ly" target="_blank" style="color:#e05553;">bit.ly</a> or
+    <a href="https://short.io" target="_blank" style="color:#e05553;">short.io</a> for a cleaner look.<br/><br/>
+    <strong>📊 Updating progress mid-pilot</strong> — use the <strong>Sales Link</strong> (Step 6) to send yourself a version
+    where you can click status badges and milestone dots directly on the page. Hit "Copy Updated Link" in the red banner,
+    then re-send to the prospect or save as your new reference URL.
+  </div>
+
+</main>
+
+<footer>
+  <img src="./argos-logo-white.png" alt="Argos Connected"
+       onerror="this.src='https://static.wixstatic.com/media/cd21ab_b51892a7f47b4bbf856884a46bd3f756~mv2.png/v1/fill/w_228,h_81,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Argos%20logo%20-%202023%20(1).png'; this.style.filter='brightness(0) invert(1)'" />
+  Argos Connected Solutions — Internal Sales Tool
+</footer>
+
+<script>
+// ============================================================
+//  ARGOS PILOT LINK BUILDER
+// ============================================================
+
+var linkType = 'customer'; // 'customer' | 'sales'
+var customScopeCount = 0;
+
+// ── Objective definitions ─────────────────────────────────
+var OBJ_DEFAULTS = [
+  { title: 'Real-Time Vehicle Visibility',  desc: 'Demonstrate live GPS tracking accuracy and asset utilisation dashboards.' },
+  { title: 'Driver Safety Scoring',         desc: 'Capture and benchmark driver behaviour metrics including harsh braking, speeding, and idling.' },
+  { title: 'Predictive Maintenance Alerts', desc: 'Validate engine diagnostic data and fault code alerts to quantify downtime reduction.' },
+  { title: 'Reporting & Compliance',        desc: 'Evaluate the reporting suite for compliance, IFTA mileage, and custom exception reports.' },
+  { title: '', desc: '' },
+  { title: '', desc: '' }
+];
+
+// ── Scope item definitions ────────────────────────────────
+var SCOPE_DEFS = [
+  { key: 's_device',          name: 'Geotab GO Device',         detail: 'GO9 OBD-II hardwired device',            defaultStatus: 'included', defaultQty: '',  defaultNotes: 'Installed by Argos tech team' },
+  { key: 's_licences',        name: 'MyGeotab Licences',         detail: 'Fleet software platform access',          defaultStatus: 'included', defaultQty: '',  defaultNotes: 'Pilot period, no charge' },
+  { key: 's_install',         name: 'Device Installation',       detail: 'On-site GO device installation',          defaultStatus: 'included', defaultQty: '',  defaultNotes: '' },
+  { key: 's_admin_training',  name: 'Admin Training',            detail: 'MyGeotab platform training',              defaultStatus: 'included', defaultQty: '2', defaultNotes: 'Virtual or on-site' },
+  { key: 's_driver_training', name: 'Driver Training',           detail: 'Driver app and HOS orientation',          defaultStatus: 'tbd',      defaultQty: '',  defaultNotes: '' },
+  { key: 's_cameras',         name: 'Dash Cameras',              detail: 'AI-enabled forward/dual-facing cameras',  defaultStatus: 'tbd',      defaultQty: '',  defaultNotes: '' },
+  { key: 's_eld',             name: 'ELD / HOS Compliance',      detail: 'Electronic logging device config',        defaultStatus: 'excluded', defaultQty: '',  defaultNotes: 'Available on full deployment' },
+  { key: 's_integration',     name: 'Dispatch Integration',      detail: 'API integration with TMS/dispatch',       defaultStatus: 'tbd',      defaultQty: '',  defaultNotes: 'Requires API assessment' },
+  { key: 's_reviews',         name: 'Data Review Meetings',      detail: 'Mid and end-of-pilot review calls',       defaultStatus: 'included', defaultQty: '2', defaultNotes: 'Scheduled by Argos AM' },
+  { key: 's_report',          name: 'Pilot Summary Report',      detail: 'ROI & performance analysis report',       defaultStatus: 'included', defaultQty: '1', defaultNotes: 'Delivered at pilot close' }
+];
+
+// ── Phase definitions ─────────────────────────────────────
+var PHASE_DEFS = [
+  { num: 1, name: 'Kick-Off & Planning' },
+  { num: 2, name: 'Device Installation & Configuration' },
+  { num: 3, name: 'Active Pilot — Data Collection' },
+  { num: 4, name: 'Mid-Pilot Business Review' },
+  { num: 5, name: 'Pilot Close & Decision' }
+];
+
+// ── Build Objectives UI ───────────────────────────────────
+function buildObjectivesUI() {
+  var sec = document.getElementById('objectives-section');
+  sec.innerHTML = '';
+  OBJ_DEFAULTS.forEach(function(def, idx) {
+    var num = idx + 1;
+    var hasContent = def.title !== '';
+    var row = document.createElement('div');
+    row.className = 'obj-row' + (hasContent ? '' : ' disabled');
+    row.id = 'obj-row-' + num;
+    row.innerHTML =
+      '<div class="toggle-wrap">' +
+        '<label class="toggle" title="Show/hide this objective">' +
+          '<input type="checkbox" id="obj-toggle-' + num + '"' + (hasContent ? ' checked' : '') + ' onchange="toggleObjRow(' + num + ')">' +
+          '<span class="toggle-slider"></span>' +
+        '</label>' +
+        '<span class="toggle-label">Show</span>' +
+      '</div>' +
+      '<div class="obj-num">' + num + '</div>' +
+      '<div class="field">' +
+        '<label>Objective Title</label>' +
+        '<input type="text" id="obj-title-' + num + '" placeholder="e.g. Real-Time Visibility" value="' + escAttr(def.title) + '" oninput="build()">' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>Description</label>' +
+        '<input type="text" id="obj-desc-' + num + '" placeholder="What will be measured or demonstrated…" value="' + escAttr(def.desc) + '" oninput="build()">' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>Status</label>' +
+        '<div class="status-pills" id="obj-status-pills-' + num + '">' +
+          statusPills(['pending','active','complete'], 'obj-status-' + num, 'pending') +
+        '</div>' +
+      '</div>';
+    sec.appendChild(row);
+  });
+}
+
+function toggleObjRow(num) {
+  var checked = document.getElementById('obj-toggle-' + num).checked;
+  var row = document.getElementById('obj-row-' + num);
+  row.classList.toggle('disabled', !checked);
+  build();
+}
+
+// ── Build Scope UI ────────────────────────────────────────
+function buildScopeUI() {
+  var sec = document.getElementById('scope-section');
+  sec.innerHTML = '';
+  SCOPE_DEFS.forEach(function(def) {
+    var row = document.createElement('div');
+    row.className = 'scope-item';
+    row.id = 'scope-row-' + def.key;
+    row.innerHTML =
+      '<div class="toggle-wrap">' +
+        '<label class="toggle">' +
+          '<input type="checkbox" id="scope-toggle-' + def.key + '" checked onchange="toggleScopeRow(\'' + def.key + '\')">' +
+          '<span class="toggle-slider"></span>' +
+        '</label>' +
+        '<span class="toggle-label">On</span>' +
+      '</div>' +
+      '<div class="scope-name" style="padding-top:7px;">' + def.name + '</div>' +
+      '<div class="field">' +
+        '<label>Quantity</label>' +
+        '<input type="text" id="scope-qty-' + def.key + '" placeholder="e.g. 20" value="' + escAttr(def.defaultQty) + '" oninput="build()">' +
+      '</div>' +
+      '<div>' +
+        '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Status</div>' +
+        '<div class="status-pills">' +
+          statusPills(['included','tbd','excluded'], 'scope-status-' + def.key, def.defaultStatus) +
+        '</div>' +
+      '</div>' +
+      '<div class="field">' +
+        '<label>Notes</label>' +
+        '<input type="text" id="scope-notes-' + def.key + '" placeholder="Optional notes…" value="' + escAttr(def.defaultNotes) + '" oninput="build()">' +
+      '</div>';
+    sec.appendChild(row);
+  });
+}
+
+function toggleScopeRow(key) {
+  var checked = document.getElementById('scope-toggle-' + key).checked;
+  document.getElementById('scope-row-' + key).classList.toggle('disabled', !checked);
+  build();
+}
+
+// ── Add Custom Scope Item ─────────────────────────────────
+window.addCustomScope = function() {
+  customScopeCount++;
+  var n = customScopeCount;
+  var container = document.getElementById('custom-scope-rows');
+  var row = document.createElement('div');
+  row.className = 'custom-scope-row';
+  row.id = 'custom-scope-row-' + n;
+  row.innerHTML =
+    '<div class="field">' +
+      '<label>Item Name</label>' +
+      '<input type="text" id="sc-name-' + n + '" placeholder="e.g. Fuel Card Integration" oninput="build()">' +
+    '</div>' +
+    '<div class="field">' +
+      '<label>Detail</label>' +
+      '<input type="text" id="sc-detail-' + n + '" placeholder="Brief description" oninput="build()">' +
+    '</div>' +
+    '<div class="field">' +
+      '<label>Qty</label>' +
+      '<input type="text" id="sc-qty-' + n + '" placeholder="—" oninput="build()">' +
+    '</div>' +
+    '<div>' +
+      '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Status</div>' +
+      '<div class="status-pills">' +
+        statusPills(['included','tbd','excluded'], 'sc-status-' + n, 'tbd') +
+      '</div>' +
+    '</div>' +
+    '<div class="field">' +
+      '<label>Notes</label>' +
+      '<input type="text" id="sc-notes-' + n + '" placeholder="Optional" oninput="build()">' +
+    '</div>' +
+    '<button class="btn-remove" onclick="removeCustomScope(' + n + ')">✕ Remove</button>';
+  container.appendChild(row);
+  build();
+};
+
+window.removeCustomScope = function(n) {
+  var row = document.getElementById('custom-scope-row-' + n);
+  if (row) row.remove();
+  build();
+};
+
+// ── Build Phases UI ───────────────────────────────────────
+function buildPhasesUI() {
+  var sec = document.getElementById('phases-section');
+  sec.innerHTML = '';
+  PHASE_DEFS.forEach(function(def) {
+    var n = def.num;
+    var row = document.createElement('div');
+    row.className = 'phase-row';
+    row.innerHTML =
+      '<div class="phase-num">' + n + '</div>' +
+      '<div class="phase-name">' + def.name + '</div>' +
+      '<div class="phase-dates-wrap">' +
+        '<input class="phase-date-input" type="date" id="phase-start-' + n + '" title="Start date" onchange="build()">' +
+        '<span>→</span>' +
+        '<input class="phase-date-input" type="date" id="phase-end-' + n + '" title="End date (optional)" onchange="build()">' +
+      '</div>' +
+      '<div class="status-pills">' +
+        statusPills(['pending','active','complete'], 'phase-status-' + n, n === 1 ? 'active' : 'pending') +
+      '</div>';
+    sec.appendChild(row);
+  });
+}
+
+// ── Status pills helper ───────────────────────────────────
+function statusPills(options, groupId, selected) {
+  var LABELS = { pending:'Pending', active:'In Progress', complete:'Complete', included:'Included', tbd:'TBD', excluded:'Excluded' };
+  // Use a comma-joined string (not JSON.stringify) to avoid double-quote conflicts in onclick HTML attributes
+  var optStr = options.join(',');
+  return options.map(function(opt) {
+    var isSel = opt === selected;
+    return '<button class="status-pill ' + (isSel ? 'sel-' + opt : '') + '" ' +
+      'id="pill-' + groupId + '-' + opt + '" ' +
+      'onclick="selectPill(\'' + groupId + '\',\'' + optStr + '\',\'' + opt + '\')">' +
+      LABELS[opt] + '</button>';
+  }).join('');
+}
+
+window.selectPill = function(groupId, optionsStr, chosen) {
+  var options = optionsStr.split(',');
+  options.forEach(function(opt) {
+    var el = document.getElementById('pill-' + groupId + '-' + opt);
+    if (el) el.className = 'status-pill ' + (opt === chosen ? 'sel-' + opt : '');
+  });
+  build();
+};
+
+function getSelectedPill(groupId, options) {
+  for (var i = 0; i < options.length; i++) {
+    var el = document.getElementById('pill-' + groupId + '-' + options[i]);
+    if (el && el.className.indexOf('sel-') !== -1) return options[i];
+  }
+  return options[0];
+}
+
+// ── Link type ─────────────────────────────────────────────
+window.setLinkType = function(type) {
+  linkType = type;
+  document.getElementById('lt-customer').className = 'link-type-opt' + (type === 'customer' ? ' active' : '');
+  document.getElementById('lt-sales').className    = 'link-type-opt' + (type === 'sales'    ? ' active' : '');
+  build();
+};
+
+// ── Date formatter (YYYY-MM-DD → "June 2, 2026") ─────────
+function fmtDate(ymd) {
+  if (!ymd) return '';
+  var parts = ymd.split('-');
+  if (parts.length !== 3) return ymd;
+  var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var m = parseInt(parts[1], 10) - 1;
+  var d = parseInt(parts[2], 10);
+  var y = parts[0];
+  return months[m] + ' ' + d + ', ' + y;
+}
+
+// ── Core: build URL ───────────────────────────────────────
+window._currentUrl = '';
+
+window.build = function() {
+  var base = (document.getElementById('base-url').value || '').trim() || 'https://pilot.argosconnected.com/argos_pilot_landing.html';
+  var company = (document.getElementById('f-company').value || '').trim();
+
+  var outputEl = document.getElementById('generated-url');
+  var copyBtn  = document.getElementById('btn-copy');
+
+  if (!company) {
+    outputEl.innerHTML = '<span style="color:#444;font-style:italic;">Enter a company name above to generate the link…</span>';
+    copyBtn.disabled = true; copyBtn.style.opacity = '.4';
+    return;
+  }
+  copyBtn.disabled = false; copyBtn.style.opacity = '1';
+
+  var parts = [];
+
+  // Basic fields
+  var basicFields = [
+    ['company',        'f-company'],
+    ['start',          'f-start'],
+    ['duration',       'f-duration'],
+    ['vehicles',       'f-vehicles'],
+    ['fleet_type',     'f-fleet-type'],
+    ['location',       'f-location'],
+    ['client_contact', 'f-client-contact'],
+    ['rep',            'f-rep']
+  ];
+  basicFields.forEach(function(f) {
+    var v = (document.getElementById(f[1]).value || '').trim();
+    if (v) parts.push([f[0], v]);
+  });
+
+  // Objectives
+  for (var i = 1; i <= 6; i++) {
+    var tog = document.getElementById('obj-toggle-' + i);
+    if (!tog || !tog.checked) continue;
+    var title = (document.getElementById('obj-title-' + i).value || '').trim();
+    var desc  = (document.getElementById('obj-desc-' + i).value  || '').trim();
+    if (!title) continue;
+    parts.push(['obj' + i, title + (desc ? '|' + desc : '')]);
+    var status = getSelectedPill('obj-status-' + i, ['pending','active','complete']);
+    if (status !== 'pending') parts.push(['obj' + i + '_status', status]);
+  }
+
+  // Predefined scope items
+  SCOPE_DEFS.forEach(function(def) {
+    var tog = document.getElementById('scope-toggle-' + def.key);
+    if (!tog || !tog.checked) return;
+    var qty    = (document.getElementById('scope-qty-' + def.key).value   || '').trim();
+    var notes  = (document.getElementById('scope-notes-' + def.key).value || '').trim();
+    var status = getSelectedPill('scope-status-' + def.key, ['included','tbd','excluded']);
+    parts.push([def.key, qty + '|' + status + '|' + notes]);
+  });
+
+  // Custom scope items
+  var cRows = document.querySelectorAll('[id^="custom-scope-row-"]');
+  var cIdx = 1;
+  cRows.forEach(function(rowEl) {
+    var n = rowEl.id.replace('custom-scope-row-', '');
+    var name   = (document.getElementById('sc-name-' + n)   ? document.getElementById('sc-name-' + n).value   : '').trim();
+    var detail = (document.getElementById('sc-detail-' + n) ? document.getElementById('sc-detail-' + n).value : '').trim();
+    var qty    = (document.getElementById('sc-qty-' + n)    ? document.getElementById('sc-qty-' + n).value    : '').trim();
+    var notes  = (document.getElementById('sc-notes-' + n)  ? document.getElementById('sc-notes-' + n).value  : '').trim();
+    var status = getSelectedPill('sc-status-' + n, ['included','tbd','excluded']);
+    if (!name) return;
+    parts.push(['sc' + cIdx, name + '|' + detail + '|' + qty + '|' + status + '|' + notes]);
+    cIdx++;
+  });
+
+  // Phases
+  PHASE_DEFS.forEach(function(def) {
+    var n      = def.num;
+    var startEl = document.getElementById('phase-start-' + n);
+    var endEl   = document.getElementById('phase-end-' + n);
+    var startVal = startEl ? startEl.value : '';
+    var endVal   = endEl   ? endEl.value   : '';
+    var status   = getSelectedPill('phase-status-' + n, ['pending','active','complete']);
+    if (status !== 'pending') parts.push(['phase' + n + '_status', status]);
+    if (startVal || endVal) {
+      var dateStr = startVal ? fmtDate(startVal) : '';
+      if (endVal) dateStr += (dateStr ? ' – ' : '') + fmtDate(endVal);
+      parts.push(['phase' + n + '_date', dateStr]);
+    }
+  });
+
+  // Link type
+  if (linkType === 'sales') parts.push(['mode', 'sales']);
+
+  // Build raw URL
+  var sep = base.includes('?') ? '&' : '?';
+  var raw = base;
+  parts.forEach(function(p, idx) {
+    raw += (idx === 0 ? sep : '&') + encodeURIComponent(p[0]) + '=' + encodeURIComponent(p[1]);
+  });
+  window._currentUrl = raw;
+
+  // Colourised display
+  var html = '<span class="url-base">' + esc(base) + '</span>';
+  parts.forEach(function(p, idx) {
+    html += '<span class="url-sep">' + (idx === 0 ? (base.includes('?') ? '&amp;' : '?') : '&amp;') + '</span>';
+    html += '<span class="url-key">' + esc(encodeURIComponent(p[0])) + '</span>';
+    html += '<span class="url-sep">=</span>';
+    html += '<span class="url-val">' + esc(encodeURIComponent(p[1])) + '</span>';
+  });
+  outputEl.innerHTML = html;
+};
+
+// ── Helpers ───────────────────────────────────────────────
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escAttr(s) {
+  return String(s || '').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Copy / Preview / Reset ────────────────────────────────
+window.copyLink = function() {
+  if (!window._currentUrl) return;
+  navigator.clipboard.writeText(window._currentUrl).then(function() {
+    var btn = document.getElementById('btn-copy');
+    btn.classList.add('copied');
+    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied!';
+    setTimeout(function() {
+      btn.classList.remove('copied');
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy Link';
+    }, 2200);
+  }).catch(function() {
+    var ta = document.createElement('textarea');
+    ta.value = window._currentUrl;
+    ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+  });
+};
+
+window.previewLink = function() {
+  if (!window._currentUrl) { alert('Enter a company name first.'); return; }
+  window.open(window._currentUrl, '_blank');
+};
+
+window.resetForm = function() {
+  document.getElementById('f-company').value = '';
+  document.getElementById('f-start').value = '';
+  document.getElementById('f-duration').value = '60 Days';
+  document.getElementById('f-vehicles').value = '';
+  document.getElementById('f-fleet-type').value = '';
+  document.getElementById('f-location').value = '';
+  document.getElementById('f-client-contact').value = '';
+  document.getElementById('f-rep').value = 'Mark Bowden';
+  document.getElementById('custom-scope-rows').innerHTML = '';
+  customScopeCount = 0;
+  buildObjectivesUI(); buildScopeUI(); buildPhasesUI();
+  build();
+  document.getElementById('f-company').focus();
+};
+
+// ── Wire up basic field listeners ─────────────────────────
+['f-company','f-start','f-duration','f-vehicles','f-fleet-type','f-location','f-client-contact','f-rep','base-url'].forEach(function(id) {
+  var el = document.getElementById(id);
+  if (el) el.addEventListener('input', build);
+});
+
+// ── Init ──────────────────────────────────────────────────
+buildObjectivesUI();
+buildScopeUI();
+buildPhasesUI();
+build();
+
+</script>
+</body>
+</html>
