@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Geotab Pilot Program — Argos Connected Solutions</title>
+
+  <!--
+  ============================================================
+  ARGOS CONNECTED — GEOTAB PILOT LANDING PAGE  v3
+  ============================================================
+  All content is driven by URL parameters. Use the Argos Pilot
+  Link Builder to generate prospect links — no editing required.
+
+  KEY URL PARAMETERS:
+    Basic:     company, start, duration, vehicles, rep,
+               location, fleet_type, client_contact
+    Mode:      mode=sales  → enables salesperson edit controls
+    Obj 1–6:   obj1=Title|Description   obj1_status=pending|active|complete
+    Scope:     s_device, s_licences, s_install, s_admin_training,
+               s_driver_training, s_cameras, s_eld, s_integration,
+               s_reviews, s_report   — each value: qty|status|notes
+               Custom items: sc1=Name|Detail|qty|status|notes  (sc1–sc5)
+    Phases:    phase1_status=pending|active|complete  phase1_date=...
+               (phases 1–5)
+
+  LOGO: Place argos-logo-white.png in the same folder as this file
+        on your GitHub repo (or any host).
+  ============================================================
+  -->
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    :root {
+      --red:          #bf1614;
+      --red-dark:     #8a1010;
+      --red-glow:     rgba(191,22,20,0.12);
+      --bg:           #f4f4f4;
+      --surface:      #ffffff;
+      --surface-2:    #f8f8f8;
+      --border:       #e2e2e2;
+      --text:         #1a1a1a;
+      --text-muted:   #666;
+      --green:        #16a34a;
+      --green-bg:     #f0fdf4;
+      --green-border: #16a34a;
+      --amber:        #d97706;
+      --amber-bg:     #fffbeb;
+      --radius:       8px;
+      --shadow:       0 2px 20px rgba(0,0,0,0.08);
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    /* ── Sales mode banner ── */
+    #sales-banner {
+      display: none;
+      background: var(--red);
+      color: #fff;
+      text-align: center;
+      padding: 10px 20px;
+      font-size: 13px;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      gap: 16px;
+      align-items: center;
+      justify-content: center;
+    }
+    #sales-banner.visible { display: flex; }
+    #sales-banner span { opacity: 0.85; font-weight: 400; }
+    #btn-copy-updated {
+      background: #fff;
+      color: var(--red);
+      border: none;
+      border-radius: 50px;
+      padding: 5px 16px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    #btn-copy-updated:hover { opacity: 0.85; }
+    #btn-copy-updated.copied { background: var(--green); color: #fff; }
+
+    /* ── Header ── */
+    header {
+      background: #000;
+      border-bottom: 2px solid var(--red);
+      padding: 0;
+    }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 18px 32px;
+    }
+    .header-logo img {
+      height: 52px;
+      width: auto;
+      display: block;
+    }
+    .header-geotab { display:flex; align-items:center; gap:10px; }
+    .geotab-label { color:rgba(255,255,255,0.55); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+    .geotab-logo { height:30px; width:auto; filter:brightness(0) invert(1); }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #fff 0%, #fdf2f2 60%, #fce8e8 100%);
+      border-bottom: 1px solid #2a0000;
+      padding: 56px 32px 64px;
+      text-align: center;
+    }
+    .hero-eyebrow {
+      display: inline-block;
+      background: var(--red);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      border-radius: 50px;
+      padding: 4px 16px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      color: #1a1a1a;
+      font-size: clamp(22px, 4vw, 36px);
+      font-weight: 700;
+      line-height: 1.2;
+      max-width: 680px;
+      margin: 0 auto 14px;
+    }
+    .hero h1 .prospect-name { color: var(--red); }
+    .hero-sub {
+      color: #555;
+      font-size: 15px;
+      max-width: 520px;
+      margin: 0 auto 36px;
+    }
+    .hero-meta {
+      display: inline-flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0;
+      background: rgba(0,0,0,0.04);
+      border: 1px solid rgba(0,0,0,0.1);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .hero-meta-item {
+      padding: 14px 28px;
+      text-align: center;
+      border-right: 1px solid rgba(0,0,0,0.08);
+    }
+    .hero-meta-item:last-child { border-right: none; }
+    .hero-meta-item .label {
+      color: #888;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .hero-meta-item .value {
+      color: #1a1a1a;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    /* ── Main layout ── */
+    main { max-width: 960px; margin: 0 auto; padding: 40px 32px 80px; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 32px 36px;
+      margin-bottom: 24px;
+    }
+    .card-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .card-icon {
+      width: 42px; height: 42px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .icon-red   { background: #2a0000; border: 1px solid var(--red); }
+    .icon-green { background: var(--green-bg); border: 1px solid var(--green-border); }
+    .icon-dark  { background: #fdf0f0; border: 1px solid #f0d0d0; }
+    .card-header h2 { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+    .card-header p  { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Overview grid ── */
+    .overview-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .overview-block {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+    }
+    .overview-block .block-label {
+      font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .08em; color: var(--red); margin-bottom: 4px;
+    }
+    .overview-block .block-value { font-size: 14px; color: #1a1a1a; font-weight: 500; }
+    .overview-desc {
+      margin-top: 20px; padding: 18px 20px;
+      background: var(--surface-2);
+      border-left: 3px solid var(--red);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 14px; color: var(--text-muted); line-height: 1.7;
+    }
+
+    /* ── Objectives ── */
+    #objectives { list-style: none; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    #objectives li {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px 16px;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .obj-icon {
+      width: 28px; height: 28px;
+      background: var(--red); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 11px; font-weight: 700;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .obj-text { flex: 1; min-width: 0; }
+    .obj-title-row {
+      display: flex; align-items: center;
+      justify-content: space-between; gap: 8px; margin-bottom: 4px;
+    }
+    .obj-title-row strong { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+    .obj-text span { font-size: 12px; color: var(--text-muted); }
+
+    /* ── Sales-mode inline editing ── */
+    .sales-field {
+      background: rgba(191,22,20,0.05);
+      border: none;
+      border-bottom: 1.5px dashed var(--red);
+      border-radius: 3px 3px 0 0;
+      color: inherit;
+      font-family: inherit;
+      font-size: inherit;
+      font-weight: inherit;
+      line-height: inherit;
+      width: 100%;
+      outline: none;
+      padding: 2px 4px;
+      transition: background .15s;
+    }
+    .sales-field:focus { background: rgba(191,22,20,0.1); }
+    .sales-field::placeholder { color: #bbb; font-weight: 400; }
+    .sales-edit-hint {
+      font-size: 10px; color: var(--red); opacity: .7;
+      text-transform: uppercase; letter-spacing: .06em;
+      margin-top: 2px; display: block;
+    }
+
+    /* ── Sales-mode objective reorder buttons ── */
+    .obj-reorder-btns {
+      display: flex; flex-direction: column; gap: 3px;
+      flex-shrink: 0; margin-top: 2px;
+    }
+    .obj-reorder-btns button {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 4px; color: var(--text-muted);
+      font-size: 12px; line-height: 1; padding: 3px 6px;
+      cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+    }
+    .obj-reorder-btns button:hover { background: var(--red); color: #fff; border-color: var(--red); }
+    .obj-reorder-btns button:disabled { opacity: .25; cursor: default; pointer-events: none; }
+
+    /* ── Status badges ── */
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 2px 8px; border-radius: 50px;
+      font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+      white-space: nowrap; flex-shrink: 0;
+      transition: opacity .15s;
+    }
+    .status-badge.clickable { cursor: pointer; }
+    .status-badge.clickable:hover { opacity: .75; }
+    .status-pending  { background: #f5f5f5; color: #888; border: 1px solid #d8d8d8; }
+    .status-active   { background: var(--amber-bg); color: var(--amber); border: 1px solid #7a5500; }
+    .status-complete { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+
+    /* ── Scope table ── */
+    .scope-table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+    }
+    #scope-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    #scope-table thead th {
+      background: var(--red); color: #fff;
+      text-align: left; padding: 11px 14px;
+      font-weight: 600; font-size: 11px;
+      letter-spacing: .05em; text-transform: uppercase;
+    }
+    #scope-table tbody tr:nth-child(even) { background: var(--surface-2); }
+    #scope-table tbody tr:hover { background: #fdf2f2; }
+    #scope-table tbody td {
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      color: #444;
+      vertical-align: middle;
+    }
+    #scope-table tbody td:first-child { font-weight: 600; color: #1a1a1a; white-space: nowrap; }
+    #scope-table .empty-row td {
+      text-align: center; color: #444; font-style: italic; padding: 24px;
+    }
+    .scope-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 50px;
+      font-size: 10px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+    }
+    .scope-included { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .scope-tbd      { background: var(--amber-bg); color: var(--amber); border: 1px solid #7a5500; }
+    .scope-excluded { background: #fef2f2; color: #bf1614; border: 1px solid #fca5a5; }
+
+    /* ── Timeline ── */
+    .timeline-item { display: flex; gap: 18px; }
+    .timeline-left {
+      display: flex; flex-direction: column;
+      align-items: center; flex-shrink: 0; width: 34px;
+    }
+    .tl-dot {
+      width: 34px; height: 34px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      flex-shrink: 0; z-index: 1;
+      transition: all .2s;
+      border: 2px solid #3a3a3a;
+      background: #f5f5f5; color: #999;
+    }
+    .tl-dot.is-complete { background: var(--green); border-color: var(--green); color: #fff; }
+    .tl-dot.is-active   { background: var(--red); border-color: var(--red); color: #fff; box-shadow: 0 0 0 4px rgba(191,22,20,0.18); }
+    .tl-dot.is-pending  { background: #f0f0f0; border-color: #d0d0d0; color: #aaa; }
+    .tl-dot.clickable   { cursor: pointer; }
+    .tl-dot.clickable:hover { opacity: .8; }
+    .tl-line {
+      flex: 1; width: 2px; background: #e0e0e0;
+      margin: 4px 0; min-height: 20px;
+    }
+    .tl-content { flex: 1; padding-bottom: 28px; }
+    .tl-content:last-child { padding-bottom: 0; }
+    .tl-phase   { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--red); margin-bottom: 3px; }
+    .tl-title   { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 3px; }
+    .tl-dates   { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+    .tl-deliverables { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+    .tl-deliverables li {
+      font-size: 12px; color: var(--text-muted);
+      display: flex; align-items: flex-start; gap: 6px;
+    }
+    .tl-deliverables li::before { content: '→'; color: var(--red); font-weight: 700; font-size: 11px; margin-top: 1px; }
+    .tl-status-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+
+    /* ── Next steps ── */
+    .next-steps-list { list-style: none; counter-reset: steps; display: flex; flex-direction: column; gap: 10px; }
+    .next-steps-list li {
+      counter-increment: steps;
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: 14px; color: var(--text);
+    }
+    .next-steps-list li::before {
+      content: counter(steps);
+      background: var(--red); color: #fff;
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+    }
+
+    /* ── Contact ── */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .contact-block { display: flex; align-items: flex-start; gap: 14px; }
+    .contact-avatar {
+      width: 48px; height: 48px; border-radius: 50%;
+      background: var(--red); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px; font-weight: 700; flex-shrink: 0;
+    }
+    .contact-info strong { display: block; font-size: 14px; color: #1a1a1a; font-weight: 700; }
+    .contact-info .role { font-size: 11px; color: var(--text-muted); margin-bottom: 6px; }
+    .contact-info a {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 12px; color: #e05553; text-decoration: none; margin-bottom: 2px;
+    }
+    .contact-info a:hover { text-decoration: underline; }
+
+    /* ── Empty state ── */
+    .empty-msg {
+      text-align: center; color: #444; font-style: italic;
+      padding: 32px; font-size: 13px;
+    }
+
+    /* ── Resources ── */
+    .resource-list { display: flex; flex-direction: column; gap: 10px; }
+    .resource-item {
+      display: flex; align-items: center; gap: 14px;
+      padding: 13px 16px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      border-radius: var(--radius); text-decoration: none; color: var(--text);
+      transition: border-color .15s, background .15s;
+    }
+    .resource-item:hover { border-color: var(--red); background: #fdf2f2; }
+    .resource-icon { font-size: 20px; flex-shrink: 0; }
+    .resource-name { font-size: 13px; font-weight: 600; color: #1a1a1a; margin-bottom: 2px; }
+    .resource-url { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 480px; }
+    .resource-arrow { margin-left: auto; color: var(--text-muted); font-size: 16px; flex-shrink: 0; }
+
+    /* ── Footer ── */
+    footer {
+      background: #000;
+      border-top: 2px solid var(--red);
+      padding: 24px 32px;
+      text-align: center;
+    }
+    .footer-inner { max-width: 960px; margin: 0 auto; }
+    .footer-logo img { height: 30px; width: auto; opacity: .7; margin-bottom: 8px; }
+    footer p { color: #444; font-size: 11px; }
+    footer a { color: #666; text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 640px) {
+      .header-bar    { flex-direction: column; gap: 12px; padding: 16px; }
+      .hero          { padding: 36px 16px 44px; }
+      .hero-meta     { flex-direction: column; width: 100%; }
+      .hero-meta-item{ border-right: none; border-bottom: 1px solid rgba(255,255,255,0.1); }
+      main           { padding: 24px 16px 60px; }
+      .card          { padding: 20px 18px; }
+      .overview-grid { grid-template-columns: 1fr; }
+      #objectives    { grid-template-columns: 1fr; }
+      .contact-grid  { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sales mode sticky banner (shown only in mode=sales) -->
+<div id="sales-banner">
+  🔒 Sales View — click any status badge or timeline dot to update progress
+  <span>Changes update the link automatically</span>
+  <button id="btn-copy-updated" onclick="copyUpdatedLink()">Copy Updated Link</button>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-bar">
+    <div class="header-logo">
+      <!-- White logo — upload argos-logo-white.png to your GitHub repo -->
+      <img src="./argos-logo-white.png" alt="Argos Connected Solutions"
+           onerror="this.src='https://static.wixstatic.com/media/cd21ab_b51892a7f47b4bbf856884a46bd3f756~mv2.png/v1/fill/w_228,h_81,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Argos%20logo%20-%202023%20(1).png'; this.style.filter='brightness(0) invert(1)'" />
+    </div>
+    <div class="header-geotab">
+      <img src="https://static.wixstatic.com/media/cd21ab_1a9b8c949f0d4d489990d7ae1e1d9eb3~mv2.png/v1/fill/w_509,h_86,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/geotab%20resller%20logo.png" alt="Geotab" class="geotab-logo" />
+    </div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <span class="hero-eyebrow">Geotab Pilot Program</span>
+  <h1>
+    Welcome, <span class="prospect-name" data-param="company">Your Company</span> —<br/>
+    Your Fleet Technology Pilot Starts Here
+  </h1>
+  <p class="hero-sub">
+    This page is your central reference for pilot objectives, scope, milestones,
+    and key contacts throughout your Geotab evaluation with Argos Connected Solutions.
+  </p>
+  <div class="hero-meta">
+    <div class="hero-meta-item">
+      <span class="label">Pilot Start</span>
+      <span class="value" data-param="start">TBD</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="label">Duration</span>
+      <span class="value" data-param="duration">60 Days</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="label">Vehicles in Scope</span>
+      <span class="value" data-param="vehicles">TBD</span>
+    </div>
+    <div class="hero-meta-item">
+      <span class="label">Your Argos Rep</span>
+      <span class="value" data-param="rep">Mark Bowden</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+
+  <!-- 1. Overview -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-dark">🗺️</div>
+      <div>
+        <h2>Program Overview</h2>
+        <p>What this pilot is designed to achieve and how it is structured</p>
+      </div>
+    </div>
+    <div class="overview-grid">
+      <div class="overview-block">
+        <div class="block-label">Account</div>
+        <div class="block-value" data-param="company">Your Company</div>
+      </div>
+      <div class="overview-block">
+        <div class="block-label">Technology Platform</div>
+        <div class="block-value">Geotab MyGeotab + GO Device</div>
+      </div>
+      <div class="overview-block">
+        <div class="block-label">Pilot Location(s)</div>
+        <div class="block-value" data-param="location">TBD</div>
+      </div>
+      <div class="overview-block">
+        <div class="block-label">Fleet Type</div>
+        <div class="block-value" data-param="fleet_type">TBD</div>
+      </div>
+      <div class="overview-block">
+        <div class="block-label">Primary Contact (Client)</div>
+        <div class="block-value" data-param="client_contact">TBD</div>
+      </div>
+      <div class="overview-block">
+        <div class="block-label">Argos Account Manager</div>
+        <div class="block-value" data-param="rep">Mark Bowden</div>
+      </div>
+    </div>
+    <div class="overview-desc">
+      This pilot is designed to give <strong data-param="company">your organisation</strong>
+      a hands-on evaluation of Geotab's fleet management platform, deployed on a representative
+      sample of your fleet. Argos Connected Solutions will work alongside your team to configure
+      the platform to your operational requirements, provide training, and deliver data-driven
+      insights to support a confident purchasing decision.
+    </div>
+  </div>
+
+  <!-- 2. Key Objectives -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-red">🎯</div>
+      <div>
+        <h2>Key Objectives</h2>
+        <p>What success looks like at the end of this pilot</p>
+      </div>
+    </div>
+    <!-- Populated by JS from obj1–obj6 URL params -->
+    <ul id="objectives"></ul>
+  </div>
+
+  <!-- 3. Scope of Work -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-dark">📋</div>
+      <div>
+        <h2>Scope of Work</h2>
+        <p>What is included in this pilot engagement</p>
+      </div>
+    </div>
+    <div class="scope-table-wrap">
+      <table id="scope-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Detail</th>
+            <th>Qty</th>
+            <th>Status</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <!-- Populated by JS from scope URL params -->
+        <tbody id="scope-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 4. Timeline -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-green">📅</div>
+      <div>
+        <h2>Pilot Timeline &amp; Milestones</h2>
+        <p>Phase-by-phase plan from kick-off to decision</p>
+      </div>
+    </div>
+    <div id="timeline">
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="tl-dot" id="dot-1" data-phase="1" data-label="1">1</div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-status-row">
+            <div class="tl-phase">Phase 1</div>
+            <span class="status-badge" id="phase-badge-1">Pending</span>
+          </div>
+          <div class="tl-title">Kick-Off &amp; Planning</div>
+          <div class="tl-dates" id="phase-date-1">📅 Date TBD</div>
+          <ul class="tl-deliverables">
+            <li>Pilot scope &amp; objectives confirmed</li>
+            <li>Vehicle list and installation schedule agreed</li>
+            <li>MyGeotab admin accounts provisioned</li>
+            <li>Welcome call with <span data-param="company">your fleet team</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="tl-dot" id="dot-2" data-phase="2">2</div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-status-row">
+            <div class="tl-phase">Phase 2</div>
+            <span class="status-badge" id="phase-badge-2">Pending</span>
+          </div>
+          <div class="tl-title">Device Installation &amp; Configuration</div>
+          <div class="tl-dates" id="phase-date-2">📅 Date TBD</div>
+          <ul class="tl-deliverables">
+            <li>GO devices ordered and installed on pilot vehicles</li>
+            <li>Geofences, exceptions &amp; alerts configured</li>
+            <li>Custom groups and driver assignment completed</li>
+            <li>Admin training session delivered</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="tl-dot" id="dot-3" data-phase="3">3</div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-status-row">
+            <div class="tl-phase">Phase 3</div>
+            <span class="status-badge" id="phase-badge-3">Pending</span>
+          </div>
+          <div class="tl-title">Active Pilot — Data Collection</div>
+          <div class="tl-dates" id="phase-date-3">📅 Date TBD</div>
+          <ul class="tl-deliverables">
+            <li>Fleet operating under live tracking &amp; monitoring</li>
+            <li>Weekly exception report review with Argos AM</li>
+            <li>Driver safety coaching initiated</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="tl-dot" id="dot-4" data-phase="4">4</div>
+          <div class="tl-line"></div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-status-row">
+            <div class="tl-phase">Phase 4</div>
+            <span class="status-badge" id="phase-badge-4">Pending</span>
+          </div>
+          <div class="tl-title">Mid-Pilot Business Review</div>
+          <div class="tl-dates" id="phase-date-4">📅 Date TBD</div>
+          <ul class="tl-deliverables">
+            <li>Data review: safety scores, utilisation, fault codes</li>
+            <li>Alignment on outstanding scope items</li>
+            <li>Preliminary ROI modelling presented</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <div class="timeline-left">
+          <div class="tl-dot" id="dot-5" data-phase="5">5</div>
+        </div>
+        <div class="tl-content">
+          <div class="tl-status-row">
+            <div class="tl-phase">Phase 5</div>
+            <span class="status-badge" id="phase-badge-5">Pending</span>
+          </div>
+          <div class="tl-title">Pilot Close &amp; Decision</div>
+          <div class="tl-dates" id="phase-date-5">📅 Date TBD</div>
+          <ul class="tl-deliverables">
+            <li>Full pilot performance &amp; ROI report delivered</li>
+            <li>Final business review meeting</li>
+            <li>Full deployment proposal presented</li>
+            <li>Decision / next-steps confirmed</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. Next Steps -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-red">🚀</div>
+      <div>
+        <h2>Next Steps</h2>
+        <p>Immediate actions to get the pilot underway</p>
+      </div>
+    </div>
+    <!-- Populated by JS from ns1–ns5 URL params -->
+    <ul class="next-steps-list" id="next-steps-list"></ul>
+  </div>
+
+  <!-- 6. Resources (shown only when res1–res5 params present) -->
+  <div class="card" id="resources-card" style="display:none">
+    <div class="card-header">
+      <div class="card-icon icon-dark">📁</div>
+      <div>
+        <h2>Resources</h2>
+        <p>Documents, presentations, and additional materials for your reference</p>
+      </div>
+    </div>
+    <div class="resource-list" id="resources-list"></div>
+  </div>
+
+  <!-- 7. Contact -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon icon-dark">📞</div>
+      <div>
+        <h2>Your Argos Team</h2>
+        <p>Reach out any time — we're your partner throughout this process</p>
+      </div>
+    </div>
+    <div class="contact-grid" id="contact-grid">
+      <div class="contact-block">
+        <div class="contact-avatar" id="rep-avatar">MB</div>
+        <div class="contact-info">
+          <strong id="rep-name">Mark Bowden</strong>
+          <div class="role" id="rep-title">Account Manager — Argos Connected Solutions</div>
+          <a href="mailto:info@argosconnected.com" id="rep-email-link">✉ info@argosconnected.com</a>
+          <a href="tel:" id="rep-phone-link" style="display:none">📞</a>
+          <a href="https://www.argosconnected.com" target="_blank">🌐 argosconnected.com</a>
+        </div>
+      </div>
+      <!-- Additional team contacts injected by JS -->
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <div class="footer-inner">
+    <div class="footer-logo">
+      <img src="./argos-logo-white.png" alt="Argos Connected"
+           onerror="this.src='https://static.wixstatic.com/media/cd21ab_b51892a7f47b4bbf856884a46bd3f756~mv2.png/v1/fill/w_228,h_81,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/Argos%20logo%20-%202023%20(1).png'; this.style.filter='brightness(0) invert(1)'" />
+    </div>
+    <p>
+      Argos Connected Solutions, LLC &nbsp;·&nbsp; Indianapolis, IN &nbsp;·&nbsp;
+      <a href="mailto:info@argosconnected.com">info@argosconnected.com</a> &nbsp;·&nbsp;
+      <a href="https://www.argosconnected.com" target="_blank">www.argosconnected.com</a>
+    </p>
+  </div>
+</footer>
+
+<script>
+// ============================================================
+//  ARGOS PILOT LANDING PAGE — Dynamic Renderer
+// ============================================================
+
+(function () {
+  var params = new URLSearchParams(window.location.search);
+  var salesMode = params.get('mode') === 'sales';
+
+  // ── Helpers ──────────────────────────────────────────────
+  function get(k) { return params.get(k) || ''; }
+
+  function esc(s) {
+    return String(s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function setParam(k, v) {
+    params.set(k, v);
+    history.replaceState(null, '', window.location.pathname + '?' + params.toString());
+  }
+
+  function initials(name) {
+    return (name || 'MB').split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0,2);
+  }
+
+  // ── Basic data-param fields ───────────────────────────────
+  document.querySelectorAll('[data-param]').forEach(function(el) {
+    var v = get(el.getAttribute('data-param'));
+    if (v) el.textContent = v;
+  });
+
+  // Update page title
+  var co = get('company');
+  if (co) document.title = 'Geotab Pilot — ' + co + ' | Argos Connected';
+
+  // Update rep avatar initials
+  var repName = get('rep') || 'Mark Bowden';
+  var av = document.getElementById('rep-avatar');
+  if (av) av.textContent = initials(repName);
+
+  // ── Sales mode banner ─────────────────────────────────────
+  if (salesMode) {
+    var banner = document.getElementById('sales-banner');
+    if (banner) banner.classList.add('visible');
+  }
+
+  // ── Status badge config ───────────────────────────────────
+  var STATUS = {
+    pending:  { label: 'Pending',     cls: 'status-pending',  next: 'active'   },
+    active:   { label: 'In Progress', cls: 'status-active',   next: 'complete' },
+    complete: { label: 'Complete',    cls: 'status-complete',  next: 'pending'  }
+  };
+  var DOT_STATUS = {
+    pending:  'is-pending',
+    active:   'is-active',
+    complete: 'is-complete'
+  };
+
+  function makeBadge(statusKey, clickable, onClickFn) {
+    var s = STATUS[statusKey] || STATUS.pending;
+    var el = document.createElement('span');
+    el.className = 'status-badge ' + s.cls + (clickable ? ' clickable' : '');
+    el.textContent = s.label + (clickable ? ' ✎' : '');
+    if (clickable) el.addEventListener('click', onClickFn);
+    return el;
+  }
+
+  // ── Objective reordering (sales mode) ────────────────────
+  function moveObjParam(num, dir) {
+    var other = num + dir;
+    // Find which nums actually exist
+    var activeNums = [];
+    for (var i = 1; i <= 6; i++) { if (get('obj' + i)) activeNums.push(i); }
+    var myIdx = activeNums.indexOf(num);
+    var otherIdx = myIdx + dir;
+    if (otherIdx < 0 || otherIdx >= activeNums.length) return;
+    var otherNum = activeNums[otherIdx];
+    // Swap obj params
+    var v1 = params.get('obj' + num)         || '';
+    var v2 = params.get('obj' + otherNum)    || '';
+    var s1 = params.get('obj' + num + '_status')      || 'pending';
+    var s2 = params.get('obj' + otherNum + '_status') || 'pending';
+    params.set('obj' + num, v2);        params.set('obj' + otherNum, v1);
+    params.set('obj' + num + '_status', s2); params.set('obj' + otherNum + '_status', s1);
+    history.replaceState(null, '', window.location.pathname + '?' + params.toString());
+    renderObjectives();
+  }
+
+  // ── Objectives ────────────────────────────────────────────
+  var DEFAULT_OBJECTIVES = [
+    { title: 'Real-Time Vehicle Visibility',   desc: 'Demonstrate live GPS tracking accuracy and asset utilisation dashboards across all pilot vehicles.' },
+    { title: 'Driver Safety Scoring',          desc: 'Capture and benchmark driver behaviour metrics including harsh braking, speeding, and idling.' },
+    { title: 'Predictive Maintenance Alerts',  desc: 'Validate engine diagnostic data and fault code alerts to quantify potential downtime reduction.' },
+    { title: 'Reporting &amp; Compliance',     desc: 'Evaluate the reporting suite for compliance, IFTA mileage, and custom exception reports.' }
+  ];
+
+  function renderObjectives() {
+    var list = document.getElementById('objectives');
+    if (!list) return;
+
+    var hasCustom = false;
+    for (var i = 1; i <= 6; i++) { if (get('obj' + i)) { hasCustom = true; break; } }
+
+    var items = [];
+    if (hasCustom) {
+      for (var i = 1; i <= 6; i++) {
+        var raw = get('obj' + i);
+        if (!raw) continue;
+        var parts = raw.split('|');
+        items.push({ num: i, title: parts[0] || '', desc: parts[1] || '', statusKey: get('obj' + i + '_status') || 'pending' });
+      }
+    } else {
+      DEFAULT_OBJECTIVES.forEach(function(d, idx) {
+        items.push({ num: idx + 1, title: d.title, desc: d.desc, statusKey: 'pending', isDefault: true });
+      });
+    }
+
+    if (!items.length) {
+      list.innerHTML = '<li style="grid-column:1/-1"><div class="empty-msg">No objectives configured yet.</div></li>';
+      return;
+    }
+
+    list.innerHTML = '';
+    items.forEach(function(item, idx) {
+      var li = document.createElement('li');
+
+      var iconEl = document.createElement('div');
+      iconEl.className = 'obj-icon';
+      iconEl.textContent = String(idx + 1).padStart(2, '0');
+
+      var textEl = document.createElement('div');
+      textEl.className = 'obj-text';
+
+      var titleRow = document.createElement('div');
+      titleRow.className = 'obj-title-row';
+
+      var strong = document.createElement('strong');
+      if (salesMode && !item.isDefault) {
+        var titleInp = document.createElement('input');
+        titleInp.type = 'text';
+        titleInp.value = item.title;
+        titleInp.className = 'sales-field';
+        titleInp.placeholder = 'Objective title…';
+        titleInp.addEventListener('input', (function(num) {
+          return function() {
+            var t = titleInp.value;
+            var d = get('obj' + num) ? (get('obj' + num).split('|')[1] || '') : '';
+            setParam('obj' + num, t + '|' + d);
+          };
+        })(item.num));
+        strong.appendChild(titleInp);
+      } else {
+        strong.innerHTML = item.title;
+      }
+
+      titleRow.appendChild(strong);
+
+      if (!item.isDefault) {
+        var badge = makeBadge(item.statusKey, salesMode, (function(num) {
+          return function() {
+            var cur = get('obj' + num + '_status') || 'pending';
+            var next = STATUS[cur] ? STATUS[cur].next : 'active';
+            setParam('obj' + num + '_status', next);
+            renderObjectives();
+          };
+        })(item.num));
+        titleRow.appendChild(badge);
+      }
+
+      var descEl = document.createElement('span');
+      if (salesMode && !item.isDefault) {
+        var descInp = document.createElement('input');
+        descInp.type = 'text';
+        descInp.value = item.desc;
+        descInp.className = 'sales-field';
+        descInp.placeholder = 'Description…';
+        descInp.addEventListener('input', (function(num) {
+          return function() {
+            var raw = get('obj' + num) || '';
+            var t = raw.split('|')[0] || '';
+            setParam('obj' + num, t + '|' + descInp.value);
+          };
+        })(item.num));
+        descEl.appendChild(descInp);
+      } else {
+        descEl.innerHTML = item.desc;
+      }
+
+      textEl.appendChild(titleRow);
+      textEl.appendChild(descEl);
+      li.appendChild(iconEl);
+      li.appendChild(textEl);
+
+      // Reorder buttons — sales mode only, custom objectives only
+      if (salesMode && !item.isDefault) {
+        var btns = document.createElement('div');
+        btns.className = 'obj-reorder-btns';
+        var upBtn = document.createElement('button');
+        upBtn.textContent = '↑';
+        upBtn.title = 'Move up';
+        upBtn.addEventListener('click', (function(n) { return function() { moveObjParam(n, -1); }; })(item.num));
+        var downBtn = document.createElement('button');
+        downBtn.textContent = '↓';
+        downBtn.title = 'Move down';
+        downBtn.addEventListener('click', (function(n) { return function() { moveObjParam(n, 1); }; })(item.num));
+        // Disable irrelevant buttons at edges
+        if (idx === 0) upBtn.disabled = true;
+        if (idx === items.length - 1) downBtn.disabled = true;
+        btns.appendChild(upBtn);
+        btns.appendChild(downBtn);
+        li.appendChild(btns);
+      }
+
+      list.appendChild(li);
+    });
+  }
+
+  renderObjectives();
+
+  // ── Scope of Work ─────────────────────────────────────────
+  var SCOPE_DEFS = [
+    { key: 's_device',          name: 'Geotab GO Device',         detail: 'GO9 OBD-II hardwired device'            },
+    { key: 's_licences',        name: 'MyGeotab Licences',         detail: 'Fleet software platform access'         },
+    { key: 's_install',         name: 'Device Installation',       detail: 'On-site GO device installation'         },
+    { key: 's_admin_training',  name: 'Admin Training',            detail: 'MyGeotab platform training'             },
+    { key: 's_driver_training', name: 'Driver Training',           detail: 'Driver app and HOS orientation'         },
+    { key: 's_cameras',         name: 'Dash Cameras',              detail: 'AI-enabled forward/dual-facing cameras' },
+    { key: 's_eld',             name: 'ELD / HOS Compliance',      detail: 'Electronic logging device config'       },
+    { key: 's_integration',     name: 'Dispatch Integration',      detail: 'API integration with TMS/dispatch'      },
+    { key: 's_reviews',         name: 'Data Review Meetings',      detail: 'Mid and end-of-pilot review calls'      },
+    { key: 's_report',          name: 'Pilot Summary Report',      detail: 'ROI &amp; performance analysis report'  }
+  ];
+
+  function scopeBadge(status) {
+    var map = {
+      included: '<span class="scope-badge scope-included">Included</span>',
+      tbd:      '<span class="scope-badge scope-tbd">TBD</span>',
+      excluded: '<span class="scope-badge scope-excluded">Excluded</span>'
+    };
+    return map[status] || map.tbd;
+  }
+
+  function renderScope() {
+    var tbody = document.getElementById('scope-body');
+    if (!tbody) return;
+
+    var rows = [];
+
+    // Predefined items
+    SCOPE_DEFS.forEach(function(def) {
+      var raw = get(def.key);
+      if (!raw) return;
+      var parts = raw.split('|');
+      rows.push({
+        name:   def.name,
+        detail: def.detail,
+        qty:    parts[0] || '—',
+        status: (parts[1] || 'tbd').toLowerCase(),
+        notes:  parts[2] || ''
+      });
+    });
+
+    // Custom items sc1–sc5
+    for (var i = 1; i <= 5; i++) {
+      var raw = get('sc' + i);
+      if (!raw) continue;
+      var p = raw.split('|');
+      rows.push({
+        name:   p[0] || 'Custom Item',
+        detail: p[1] || '',
+        qty:    p[2] || '—',
+        status: (p[3] || 'tbd').toLowerCase(),
+        notes:  p[4] || ''
+      });
+    }
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="5">Scope of work to be confirmed — contact your Argos account manager.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = rows.map(function(r) {
+      return '<tr>' +
+        '<td>' + esc(r.name) + '</td>' +
+        '<td>' + r.detail + '</td>' +
+        '<td>' + esc(r.qty) + '</td>' +
+        '<td>' + scopeBadge(r.status) + '</td>' +
+        '<td>' + esc(r.notes) + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  renderScope();
+
+  // ── Timeline phases ───────────────────────────────────────
+  function applyPhaseStatus(num, statusKey) {
+    var dot   = document.getElementById('dot-' + num);
+    var badge = document.getElementById('phase-badge-' + num);
+    if (!dot || !badge) return;
+
+    var s = STATUS[statusKey] || STATUS.pending;
+    var d = DOT_STATUS[statusKey] || DOT_STATUS.pending;
+
+    dot.className   = 'tl-dot ' + d + (salesMode ? ' clickable' : '');
+    dot.textContent = statusKey === 'complete' ? '✓' : String(num);
+
+    badge.className   = 'status-badge ' + s.cls + (salesMode ? ' clickable' : '');
+    badge.textContent = s.label + (salesMode ? ' ✎' : '');
+
+    if (salesMode) {
+      dot.onclick = badge.onclick = (function(n) {
+        return function() {
+          var cur  = get('phase' + n + '_status') || 'pending';
+          var next = STATUS[cur] ? STATUS[cur].next : 'active';
+          setParam('phase' + n + '_status', next);
+          applyPhaseStatus(n, next);
+        };
+      })(num);
+    }
+  }
+
+  for (var p = 1; p <= 5; p++) {
+    var statusKey = get('phase' + p + '_status') || 'pending';
+    applyPhaseStatus(p, statusKey);
+
+    var dateEl = document.getElementById('phase-date-' + p);
+    var dateVal = get('phase' + p + '_date');
+    if (dateEl && dateVal) dateEl.textContent = '📅 ' + dateVal;
+  }
+
+  // ── Rep contact details ───────────────────────────────────
+  var repName  = get('rep')       || 'Mark Bowden';
+  var repTitle = get('rep_title') || 'Account Manager — Argos Connected Solutions';
+  var repEmail = get('rep_email') || 'info@argosconnected.com';
+  var repPhone = get('rep_phone') || '';
+
+  var repNameEl  = document.getElementById('rep-name');
+  var repTitleEl = document.getElementById('rep-title');
+  var repEmailEl = document.getElementById('rep-email-link');
+  var repPhoneEl = document.getElementById('rep-phone-link');
+  var repAvatarEl = document.getElementById('rep-avatar');
+
+  if (repNameEl)  repNameEl.textContent  = repName;
+  if (repTitleEl) repTitleEl.textContent = repTitle;
+  if (repEmailEl) { repEmailEl.href = 'mailto:' + repEmail; repEmailEl.textContent = '✉ ' + repEmail; }
+  if (repAvatarEl) repAvatarEl.textContent = initials(repName);
+  if (repPhoneEl && repPhone) {
+    repPhoneEl.href = 'tel:' + repPhone.replace(/\D/g, '');
+    repPhoneEl.textContent = '📞 ' + repPhone;
+    repPhoneEl.style.display = 'flex';
+  }
+
+  // Also update overview rep block via data-param (already handled above),
+  // but the hero meta rep block needs the same treatment
+  document.querySelectorAll('[data-param="rep"]').forEach(function(el) {
+    el.textContent = repName;
+  });
+
+  // ── Next Steps ────────────────────────────────────────────
+  var NS_DEFAULTS = [
+    'Confirm the pilot vehicle list and provide VINs / license plates to Argos.',
+    'Designate an internal fleet admin who will own the MyGeotab platform day-to-day.',
+    'Schedule the device installation date with Argos (see Phase 2 above).',
+    'Block time for the kick-off call and first admin training session.',
+    'Review this page and flag any scope questions to your Argos account manager.'
+  ];
+
+  (function renderNextSteps() {
+    var list = document.getElementById('next-steps-list');
+    if (!list) return;
+    var hasCustom = false;
+    for (var i = 1; i <= 5; i++) { if (get('ns' + i)) { hasCustom = true; break; } }
+    var steps = hasCustom ? [] : NS_DEFAULTS.slice();
+    if (hasCustom) {
+      for (var i = 1; i <= 5; i++) { var s = get('ns' + i); if (s) steps.push(s); }
+    }
+    if (salesMode) {
+      list.innerHTML = '';
+      steps.forEach(function(s, idx) {
+        var li = document.createElement('li');
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.value = s;
+        inp.className = 'sales-field';
+        inp.placeholder = 'Next step…';
+        inp.addEventListener('input', (function(i) {
+          return function() { setParam('ns' + (i + 1), inp.value); };
+        })(idx));
+        li.appendChild(inp);
+        list.appendChild(li);
+      });
+    } else {
+      list.innerHTML = steps.map(function(s) {
+        return '<li>' + esc(s) + '</li>';
+      }).join('');
+    }
+  })();
+
+  // ── Resources ─────────────────────────────────────────────
+  (function renderResources() {
+    var list = document.getElementById('resources-list');
+    var card = document.getElementById('resources-card');
+    if (!list || !card) return;
+    var ICONS = { pdf: '📄', doc: '📝', ppt: '📊', xls: '📊', mp4: '🎬', default: '🔗' };
+    function iconFor(url) {
+      var ext = (url || '').split('.').pop().toLowerCase();
+      return ICONS[ext] || ICONS.default;
+    }
+    var items = [];
+    for (var i = 1; i <= 5; i++) {
+      var raw = get('res' + i);
+      if (!raw) continue;
+      var parts = raw.split('|');
+      var title = (parts[0] || '').trim();
+      var url   = (parts[1] || '').trim();
+      if (title && url) items.push({ title: title, url: url });
+    }
+    if (!items.length) return;
+    card.style.display = '';
+    list.innerHTML = items.map(function(item) {
+      return '<a href="' + esc(item.url) + '" target="_blank" rel="noopener" class="resource-item">' +
+        '<span class="resource-icon">' + iconFor(item.url) + '</span>' +
+        '<div style="min-width:0">' +
+          '<div class="resource-name">' + esc(item.title) + '</div>' +
+          '<div class="resource-url">' + esc(item.url) + '</div>' +
+        '</div>' +
+        '<span class="resource-arrow">↗</span>' +
+      '</a>';
+    }).join('');
+  })();
+
+  // ── Additional team contacts ───────────────────────────────
+  (function renderTeamContacts() {
+    var grid = document.getElementById('contact-grid');
+    if (!grid) return;
+    var defs = [
+      { role: 'Business Development', nameKey: 'bd_name', emailKey: 'bd_email', phoneKey: 'bd_phone' },
+      { role: 'Solutions Engineer',   nameKey: 'se_name', emailKey: 'se_email', phoneKey: 'se_phone' },
+      { role: 'Pilot Team POC',       nameKey: 'pt_name', emailKey: 'pt_email', phoneKey: 'pt_phone' }
+    ];
+    defs.forEach(function(c) {
+      var name = get(c.nameKey);
+      if (!name) return;
+      var email = get(c.emailKey) || '';
+      var phone = get(c.phoneKey) || '';
+      var block = document.createElement('div');
+      block.className = 'contact-block';
+      var avatar = document.createElement('div');
+      avatar.className = 'contact-avatar';
+      avatar.textContent = initials(name);
+      var info = document.createElement('div');
+      info.className = 'contact-info';
+      var html = '<strong>' + esc(name) + '</strong><div class="role">' + esc(c.role) + '</div>';
+      if (email) html += '<a href="mailto:' + esc(email) + '">✉ ' + esc(email) + '</a>';
+      if (phone) html += '<a href="tel:' + phone.replace(/\D/g,'') + '">📞 ' + esc(phone) + '</a>';
+      info.innerHTML = html;
+      block.appendChild(avatar);
+      block.appendChild(info);
+      grid.appendChild(block);
+    });
+  })();
+
+  // ── Sales mode: inline editing ────────────────────────────
+  function makeEditable(el, paramKey, onChangeCb) {
+    var inp = document.createElement('input');
+    inp.type = 'text';
+    inp.value = el.textContent.trim();
+    inp.className = 'sales-field';
+    inp.addEventListener('input', function() {
+      setParam(paramKey, inp.value);
+      if (onChangeCb) onChangeCb(inp.value);
+    });
+    el.textContent = '';
+    el.appendChild(inp);
+  }
+
+  function initSalesEditing() {
+    if (!salesMode) return;
+
+    // Overview block values (data-param driven)
+    document.querySelectorAll('.overview-block .block-value[data-param]').forEach(function(el) {
+      var key = el.getAttribute('data-param');
+      makeEditable(el, key, function(v) {
+        // Mirror value to hero meta and other non-input data-param refs
+        document.querySelectorAll('[data-param="' + key + '"]').forEach(function(m) {
+          if (!m.querySelector('input') && m !== el) m.textContent = v;
+        });
+        if (key === 'rep') {
+          var av = document.getElementById('rep-avatar');
+          if (av) av.textContent = initials(v);
+        }
+      });
+    });
+
+    // Rep name
+    var rnEl = document.getElementById('rep-name');
+    if (rnEl) makeEditable(rnEl, 'rep', function(v) {
+      var av = document.getElementById('rep-avatar');
+      if (av) av.textContent = initials(v);
+    });
+
+    // Rep title
+    var rtEl = document.getElementById('rep-title');
+    if (rtEl) makeEditable(rtEl, 'rep_title');
+
+    // Rep email (it's an <a> tag — replace content with labelled input)
+    var reEl = document.getElementById('rep-email-link');
+    if (reEl) {
+      var emailInp = document.createElement('input');
+      emailInp.type = 'email';
+      emailInp.value = get('rep_email') || 'info@argosconnected.com';
+      emailInp.className = 'sales-field';
+      emailInp.addEventListener('input', function() { setParam('rep_email', emailInp.value); });
+      reEl.innerHTML = '✉ ';
+      reEl.appendChild(emailInp);
+      reEl.style.pointerEvents = 'none';
+      emailInp.style.pointerEvents = 'all';
+      emailInp.style.cursor = 'text';
+    }
+
+    // Rep phone
+    var rpEl = document.getElementById('rep-phone-link');
+    if (rpEl) {
+      rpEl.style.display = 'flex';
+      var phoneInp = document.createElement('input');
+      phoneInp.type = 'tel';
+      phoneInp.value = get('rep_phone') || '';
+      phoneInp.placeholder = 'Phone number';
+      phoneInp.className = 'sales-field';
+      phoneInp.addEventListener('input', function() { setParam('rep_phone', phoneInp.value); });
+      rpEl.innerHTML = '📞 ';
+      rpEl.appendChild(phoneInp);
+      rpEl.style.pointerEvents = 'none';
+      phoneInp.style.pointerEvents = 'all';
+      phoneInp.style.cursor = 'text';
+    }
+  }
+
+  initSalesEditing();
+
+  // ── Copy updated link ─────────────────────────────────────
+  window.copyUpdatedLink = function() {
+    var url = window.location.href;
+    navigator.clipboard.writeText(url).then(function() {
+      var btn = document.getElementById('btn-copy-updated');
+      btn.classList.add('copied');
+      btn.textContent = '✓ Copied!';
+      setTimeout(function() {
+        btn.classList.remove('copied');
+        btn.textContent = 'Copy Updated Link';
+      }, 2200);
+    }).catch(function() {
+      prompt('Copy this link:', url);
+    });
+  };
+
+})();
+</script>
+
+</body>
+</html>
